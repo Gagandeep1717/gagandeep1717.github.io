@@ -1,0 +1,62 @@
+/* Device fixes for phones, tablets and short screens. Loaded after portfolio.css and theme-light.css. */
+
+/* tap-outside area behind the sidebar on phones */
+.sidebar-backdrop{display:none}
+@media(max-width:720px){
+ .sidebar-backdrop{display:block;position:absolute;inset:0;z-index:3;background:#0009;opacity:0;pointer-events:none;transition:opacity .2s}
+ .sidebar-backdrop.is-visible{opacity:1;pointer-events:auto}
+ [data-theme=light] .sidebar-backdrop{background:#3b241866}
+ .app-shell{position:relative}
+ .sidebar{overflow-y:auto;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+}
+
+/* phones */
+@media(max-width:720px){
+ .chat-header{height:50px;padding:0 8px 0 10px}
+ .sidebar-toggle{margin-right:6px}
+ .thread-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .header-actions{gap:2px;flex:none}
+ .header-actions>button,.more-wrap>button,.sidebar-toggle{min-width:38px;height:38px}
+ .tree-file{height:38px;font-size:13px}
+ .side-actions button{height:40px}
+ .conversation{padding:5vh 0 24px}
+ .composer-wrap{width:calc(100% - 20px);padding:6px 0 calc(10px + env(safe-area-inset-bottom))}
+ .composer{min-height:0;padding:10px 12px 8px;border-radius:14px}
+ .composer textarea{font-size:16px;min-height:26px}
+ .utility-dialog input{font-size:16px}
+ .send-button{width:34px;height:34px}
+ .user-message{max-width:85%;overflow-wrap:anywhere}
+ .assistant-message{gap:10px}
+ .assistant-content{overflow-wrap:anywhere}
+ .assistant-content h1{font-size:21px}
+ .assistant-content h2{font-size:17px}
+ .attachment-card{max-width:100%}
+ .newchat-questions button,.suggestions button{min-height:46px;font-size:13px}
+ .header-menu{right:0;max-width:calc(100vw - 20px)}
+}
+
+/* very small phones */
+@media(max-width:360px){
+ .conversation{width:calc(100% - 24px)}
+ .welcome-title,.newchat-title{font-size:20px}
+ .assistant-content h1{font-size:19px}
+ .composer-hint{font-size:10px}
+}
+
+/* tablets: keep the sidebar but give the content more room */
+@media(min-width:721px) and (max-width:1024px){
+ .sidebar{width:230px}
+ .conversation{width:calc(100% - 40px)}
+}
+
+/* short screens, e.g. phones in landscape */
+@media(max-height:560px){
+ .app-shell{min-height:0}
+ .conversation{padding-top:3vh}
+ .startup-body{height:auto;padding:22px 0}
+}
+
+/* no hover lift on touch screens */
+@media(hover:none){
+ .newchat-questions button:hover{transform:none}
+}
