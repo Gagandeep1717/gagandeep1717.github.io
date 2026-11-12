@@ -491,8 +491,9 @@ Databases with SQL and version control with Git across full-stack projects.
   const safeQuestion=question.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const corrected=correctTypos(question),plain=corrected,shortMessage=plain.split(' ').length<=5;
   const resumeRequest=/\b(resume|cv|curriculum vitae)\b/i.test(corrected);
-  const greeting=shortMessage&&/^(hi+|hey+|hello+|hey there|hello there|hi there|good (morning|afternoon|evening)|namaste|namaskara|hola|yo|sup)\b/.test(plain);
-  const thanks=shortMessage&&/^(thanks|thank you|thank u|thx|ty|great|awesome|cool|nice|perfect|got it|ok|okay|bye|goodbye)\b/.test(plain);
+  const hasTopic=resumeRequest||matchTopics(corrected).length>0;
+  const greeting=shortMessage&&!hasTopic&&/^(hi+|hey+|hello+|hey there|hello there|hi there|good (morning|afternoon|evening)|namaste|namaskara|hola|yo|sup)\b/.test(plain);
+  const thanks=shortMessage&&!hasTopic&&/^(thanks|thank you|thank u|thx|ty|great|awesome|cool|nice|perfect|got it|ok|okay|bye|goodbye)\b/.test(plain);
   const helpRequest=/\b(what can (you|i) (do|ask)|what should i ask|how does this work|help me|^help$|what do you know)\b/.test(plain);
   response.insertAdjacentHTML('beforeend',`<div class="user-message">${safeQuestion}</div>`);
   lastCloudFailure=null;
