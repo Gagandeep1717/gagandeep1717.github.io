@@ -364,7 +364,14 @@ Databases with SQL and version control with Git across full-stack projects.
   for(const card of deferredCards)if(!await typeRichContent(card,generation))return false;
   return generation===chatGeneration;
  }
- function showFile(name){if(!files[name])return;const generation=++chatGeneration;chatInput.disabled=false;updateSendButton();tree.forEach(b=>b.classList.toggle('selected',b.dataset.file===name));welcome.hidden=true;hideNewChat();response.hidden=false;const body=render(files[name])+(name==='resume.md'?resumeCard():'');response.innerHTML=`<div class="user-message">${sectionPrompts[name]||'Give me an overview'}</div><div class="assistant-message"><div class="assistant-avatar"><img class="brand-logo" src="images/logo.svg" alt=""></div><div class="assistant-content">${body}</div></div>`;if(innerWidth<=720)setSidebarOpen(false);document.querySelector('.chat-scroll').scrollTop=document.querySelector('.chat-scroll').scrollHeight;void typeRichContent(response.querySelector('.assistant-content'),generation)}
+ // Click history: each section or screen a visitor opens gets a browser history entry,
+ // so the Back button returns to the previous view instead of leaving the portfolio.
+ function pushView(state,hash){
+  const current=history.state;
+  if(current&&current.view===state.view&&current.file===state.file)return;
+  try{history.pushState(state,'',hash)}catch(_error){}
+ }
+ function showFile(name,record=true){if(!files[name])return;if(record)pushView({view:'file',file:name},`#${name}`);const generation=++chatGeneration;chatInput.disabled=false;updateSendButton();tree.forEach(b=>b.classList.toggle('selected',b.dataset.file===name));welcome.hidden=true;hideNewChat();response.hidden=false;const body=render(files[name])+(name==='resume.md'?resumeCard():'');response.innerHTML=`<div class="user-message">${sectionPrompts[name]||'Give me an overview'}</div><div class="assistant-message"><div class="assistant-avatar"><img class="brand-logo" src="images/logo.svg" alt=""></div><div class="assistant-content">${body}</div></div>`;if(innerWidth<=720)setSidebarOpen(false);document.querySelector('.chat-scroll').scrollTop=document.querySelector('.chat-scroll').scrollHeight;void typeRichContent(response.querySelector('.assistant-content'),generation)}
  tree.forEach(button=>button.addEventListener('click',()=>showFile(button.dataset.file)));
  const chatInput=document.getElementById('chatInput'),sendButton=document.getElementById('sendButton');
  function resizeComposer(){chatInput.style.height='auto';chatInput.style.height=`${Math.min(chatInput.scrollHeight,130)}px`;chatInput.style.overflowY=chatInput.scrollHeight>130?'auto':'hidden'}
@@ -380,8 +387,9 @@ Databases with SQL and version control with Git across full-stack projects.
   let position=0;newChatTyping=setInterval(()=>{newChatTitle.textContent=text.slice(0,++position);if(position>=text.length)clearInterval(newChatTyping)},reducedMotion?20:45);
  }
  newChat.querySelectorAll('[data-question]').forEach(button=>button.addEventListener('click',()=>{chatInput.value=button.dataset.question;resizeComposer();updateSendButton();send()}));
- function startNewChat(){chatGeneration++;response.hidden=true;response.replaceChildren();welcome.hidden=true;showNewChat();tree.forEach(button=>button.classList.remove('selected'));chatInput.value='';chatInput.disabled=false;resizeComposer();updateSendButton();resetAiStatus();chatInput.focus();if(innerWidth<=720)setSidebarOpen(false)}
- document.getElementById('newChatButton').addEventListener('click',startNewChat);
+ function showWelcome(){chatGeneration++;response.hidden=true;response.replaceChildren();hideNewChat();welcome.hidden=false;tree.forEach(button=>button.classList.remove('selected'));chatInput.value='';chatInput.disabled=false;resizeComposer();updateSendButton();resetAiStatus();if(innerWidth<=720)setSidebarOpen(false);document.querySelector('.chat-scroll').scrollTop=0}
+ function startNewChat(record=true){if(record)pushView({view:'new-chat'},'#new-chat');chatGeneration++;response.hidden=true;response.replaceChildren();welcome.hidden=true;showNewChat();tree.forEach(button=>button.classList.remove('selected'));chatInput.value='';chatInput.disabled=false;resizeComposer();updateSendButton();resetAiStatus();chatInput.focus();if(innerWidth<=720)setSidebarOpen(false)}
+ document.getElementById('newChatButton').addEventListener('click',()=>startNewChat());
  document.querySelector('.codex-brand').addEventListener('click',()=>showFile('README.md'));
  const searchButton=document.getElementById('searchButton'),searchDialog=document.getElementById('searchDialog'),searchInput=document.getElementById('searchInput'),searchResults=document.getElementById('searchResults');
  function renderSearchResults(query=''){
@@ -646,6 +654,22 @@ Databases with SQL and version control with Git across full-stack projects.
  }
  if(chatEndpoint)setAiStatus('AI assistant ready');
  else checkNanoAvailability();
+ // Back / Forward: restore the view saved in that history entry without adding a new one.
+ function restoreView(state){
+  if(searchDialog.open)searchDialog.close();
+  if(shareDialog.open)shareDialog.close();
+  if(state?.view==='file'&&files[state.file])showFile(state.file,false);
+  else if(state?.view==='new-chat')startNewChat(false);
+  else showWelcome();
+ }
+ window.addEventListener('popstate',event=>restoreView(event.state));
+ {
+  // First load: mark the landing screen as the start of the history, or open the section named in the link (e.g. #research.md).
+  const linked=decodeURIComponent(location.hash.slice(1));
+  const initial=files[linked]?{view:'file',file:linked}:linked==='new-chat'?{view:'new-chat'}:{view:'welcome'};
+  try{history.replaceState(initial,'',initial.view==='welcome'?location.pathname+location.search:location.hash)}catch(_error){}
+  if(initial.view!=='welcome')restoreView(initial);
+ }
  response.addEventListener('click',event=>{
   const link=event.target.closest('a[data-file]');
   if(link&&files[link.dataset.file]){event.preventDefault();showFile(link.dataset.file)}
